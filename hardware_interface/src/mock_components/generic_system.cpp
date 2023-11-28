@@ -468,25 +468,13 @@ void GenericSystem::initialize_storage_vectors(
           if (it2 != component.parameters.end())
           {
             states[index][i] = std::stod(it2->second);
-            print_hint = true;
           }
           else
           {
-            print_hint = true;
           }
         }
       }
     }
-  }
-  if (print_hint)
-  {
-    RCUTILS_LOG_WARN_ONCE_NAMED(
-      "mock_generic_system",
-      "Parsing of optional initial interface values failed or uses a deprecated format. Add "
-      "initial values for every state interface in the ros2_control.xacro. For example: \n"
-      "<state_interface name=\"velocity\"> \n"
-      "  <param name=\"initial_value\">0.0</param> \n"
-      "</state_interface>");
   }
 }
 

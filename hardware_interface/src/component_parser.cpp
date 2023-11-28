@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include <tinyxml2.h>
+#include <iostream>
 #include <regex>
 #include <stdexcept>
 #include <string>
