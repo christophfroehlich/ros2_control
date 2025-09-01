@@ -30,7 +30,7 @@
 #include "rclcpp/version.h"
 #include "rclcpp_lifecycle/lifecycle_node.hpp"
 
-// change something again and again and again and again and
+// change something again and again and again and again and again
 
 namespace controller_interface
 {
