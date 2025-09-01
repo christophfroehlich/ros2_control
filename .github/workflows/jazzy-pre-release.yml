@@ -28,7 +28,7 @@ env:
 jobs:
   default:
     if: |
-      (github.event_name == 'issue_comment' && github.event.pull_request && (contains(github.event.comment.body, '/check-prerelease') || contains(github.event.comment.body, '/check-prerelease-downstream'))) ||
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request && (contains(github.event.comment.body, '/check-prerelease') || contains(github.event.comment.body, '/check-prerelease-downstream'))) ||
       (github.event_name == 'pull_request' && (contains(github.event.label.name, 'check-prerelease') || contains(github.event.label.name, 'check-prerelease-downstream'))) ||
       (github.event_name == 'workflow_dispatch')
 
@@ -39,7 +39,7 @@ jobs:
       - name: Extract base branch
         # With issue_comment event we don't have direct access to the PRs base branch
         if: |
-          github.event_name == 'issue_comment' && github.event.pull_request
+          github.event_name == 'issue_comment' && github.event.issue.pull_request
         id: extract_base_branch
         run: |
           pr_url="${{ github.event.issue.pull_request.url }}"
