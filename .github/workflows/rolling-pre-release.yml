@@ -23,6 +23,17 @@ on:
       - created
 
 jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print environment variables
+        run: printenv
+      - run: |
+          set -xe
+          echo ${{github.head_ref}}
+          echo ${{github.event.issue.pull_request}}
+          echo ${{github.event_name == 'issue_comment'}}
+          echo ${{(contains(github.event.comment.body, '/check-prerelease') || contains(github.event.label.name, 'check-prerelease-downstream'))}}
   default:
     if: |
       (github.head_ref == 'master' && github.event.issue.pull_request && github.event_name == 'issue_comment' && (contains(github.event.comment.body, '/check-prerelease') || contains(github.event.label.name, 'check-prerelease-downstream'))) ||
