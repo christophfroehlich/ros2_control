@@ -34,7 +34,7 @@ jobs:
           echo ${{github.event.issue.pull_request}}
           echo ${{github.event_name == 'issue_comment'}}
           echo ${{(contains(github.event.comment.body, '/check-prerelease') || contains(github.event.label.name, 'check-prerelease-downstream'))}}
-  default:
+  nameme:
     if: |
       (github.head_ref == 'master' && github.event.issue.pull_request && github.event_name == 'issue_comment' && (contains(github.event.comment.body, '/check-prerelease') || contains(github.event.label.name, 'check-prerelease-downstream'))) ||
       (github.event_name == 'pull_request' && (contains(github.event.label.name, 'check-prerelease') || contains(github.event.label.name, 'check-prerelease-downstream'))) ||
@@ -45,7 +45,7 @@ jobs:
       matrix:
         ROS_DISTRO: [kilted, rolling]
 
-    name: ${{ matrix.ROS_DISTRO }}
+    name: name
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
