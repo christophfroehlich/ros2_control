@@ -16,8 +16,11 @@ on:
       - jazzy
     types:
       - labeled
-  pull_request_review_comment:
-    # we have to check if the PR is targeting the correct branch
+  issue_comment:
+    # This event will only trigger a workflow run if the workflow file exists on the default branch.
+    # we have to check if the comment is a) from a PR and b) if it is targeting correct branch
+    types:
+      - created
 
 env:
   ROS_DISTRO: jazzy
@@ -25,7 +28,7 @@ env:
 jobs:
   default:
     if: |
-      (github.event_name == 'pull_request_review_comment' && github.event.pull_request.head.ref == ${{ github.env.ROS_DISTRO }} && (contains(github.event.comment.body, '/check-prerelease') || contains(github.event.label.name, 'check-prerelease-downstream'))) ||
+      (github.event_name == 'issue_comment' && github.event.pull_request && (contains(github.event.comment.body, '/check-prerelease') || contains(github.event.label.name, 'check-prerelease-downstream'))) ||
       (github.event_name == 'pull_request' && (contains(github.event.label.name, 'check-prerelease') || contains(github.event.label.name, 'check-prerelease-downstream'))) ||
       (github.event_name == 'workflow_dispatch')
 
@@ -33,11 +36,31 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - name: Extract base branch
+        # With issue_comment event we don't have direct access to the PRs base branch
+        if: |
+          github.event_name == 'issue_comment' && github.event.pull_request
+        id: extract_base_branch
+        run: |
+          pr_url="${{ github.event.issue.pull_request.url }}"
+          if [ -n "$pr_url" ]; then
+            pr_json=$(curl -s -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" "$pr_url")
+            base_branch=$(echo "$pr_json" | jq -r '.base.ref')
+            echo "PR base branch: $base_branch"
+            echo "base_branch=$base_branch" >> $GITHUB_OUTPUT
+          else
+            echo "No PR URL found in issue."
+            echo "base_branch=''" >> $GITHUB_OUTPUT
+          fi
       - name: industrial_ci
+        if: |
+          steps.extract_base_branch.outputs.base_branch == ${{ env.ROS_DISTRO }} ||
+          (github.event_name == 'pull_request' && (contains(github.event.label.name, 'check-prerelease') || contains(github.event.label.name, 'check-prerelease-downstream'))) ||
+          (github.event_name == 'workflow_dispatch')
         env:
           PRERELEASE: true
           # hardcode to 1 if check-prerelease-downstream is triggered, otherwise use input
-          PRERELEASE_DOWNSTREAM_DEPTH: ${{ (( github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '/check-prerelease-downstream')) ||  (github.event_name == 'pull_request' && contains(github.event.label.name, 'check-prerelease-downstream'))) && 1 || inputs.dependency_level}}
+          PRERELEASE_DOWNSTREAM_DEPTH: ${{ (( github.event_name == 'issue_comment' && contains(github.event.comment.body, '/check-prerelease-downstream')) ||  (github.event_name == 'pull_request' && contains(github.event.label.name, 'check-prerelease-downstream'))) && 1 || inputs.dependency_level}}
           BASEDIR: ${{ github.workspace }}/.work
           DOCKER_IMAGE: ghcr.io/ros-controls/ros:${{ env.ROS_DISTRO }}-ubuntu-testing
         uses: ros-industrial/industrial_ci@master
